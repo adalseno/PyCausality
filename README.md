@@ -1,7 +1,18 @@
 # About this fork
 
 I have updated the setup to remove a specific version of `dateutil` and nose (I use `pytest` instead). I have tweaked the code to keep up with newer versions of `pandas` and `scipy`. To run the tests, just get into the project's root folder and run `pytest`. All 8 tests should pass.
-My system uses Python 3.9.18, python-dateutil 2.8.2, numpy 1.24.4, pandas 2.0.3, pytest 7.4.0, scipy 1.11.2, statsmodels 0.14.0, matplotlib 3.7.2
+
+My system uses 
+- Python 3.9.18,
+- python-dateutil 2.8.2,
+- numpy 1.24.4,
+- pandas 2.0.3,
+- pytest 7.4.0,
+- scipy 1.11.2,
+- statsmodels 0.14.0,
+- matplotlib 3.7.2
+
+Install using `pip install git+https://github.com/adalseno/PyCausality/` (I'd suggest trying `pip install --dry-run git+https://github.com/adalseno/PyCausality/` before, in order to check that all the dependencies are already installed).
 
 # PyCausality
 
