@@ -14,7 +14,7 @@ setup(name="PyCausality",
       url="https://github.com/ZacKeskin/PyCausality",
       license="GNU GPLv3",
       packages=find_packages(),
-      install_requires = ['pandas','statsmodels','numpy', 'python-dateutil==2.6.1','nose'] 
+      install_requires = ['pandas','statsmodels','numpy', 'python-dateutil'] 
       ## Technically also needs Matplotlib for the plot_pdf() function, however pip chooses
       #  to install its own pip which is a nightmare on OSX. Safer to let the users
       # manage their own matplotlib installation, since this is a pretty standard package and
