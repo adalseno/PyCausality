@@ -11,8 +11,7 @@
 """
 
 
-import os
-import matplotlib.pyplot as plt
+
 
 from PyCausality.TransferEntropy import *
 from PyCausality.Testing.Test_Utils.Time_Series_Generate import *
@@ -23,7 +22,7 @@ DATALAG = 3                     # The TE code should pick out this lag, which co
 LAGs = [r for r in range(1,10,1)]
 SIMILARITY = 0.5                # Choose value between 0 (independent) to 1 (exact lagged value)
 AUTOSIMILARITY = 0.3            # Choose value between 0 (independent) to 1 (exact lagged value)
-SEED = None                     # Change pseudo-RNG seed; useful for repeat results & comparing bin choices
+SEED = 1968                     # Change pseudo-RNG seed; useful for repeat results & comparing bin choices
 
 MAX_BINS = 9
 N_SHUFFLES = 50
@@ -108,7 +107,7 @@ results = pd.DataFrame({'lTE_XY':lTEs_XY,
                         'Z_YX':z_scoresYX} )
 
 ## Plot TEs
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 fig, (TE_axis, Z_axis) = plt.subplots(nrows=2,ncols=1,sharex=True)
 
 results['lags'] = LAGs
