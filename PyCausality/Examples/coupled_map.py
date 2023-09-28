@@ -11,7 +11,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-import os
 
 from PyCausality.TransferEntropy import *
 from PyCausality.Testing.Test_Utils.Time_Series_Generate import *
@@ -25,7 +24,7 @@ SIMILARITY = np.linspace(0,0.9,9)
 
 
 ## Prepare Plot
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 fig, (TE_axis, Z_axis) = plt.subplots(figsize=(5, 8), nrows=2,ncols=1,sharex=True)
 
 
@@ -86,7 +85,7 @@ for i,n_bins in enumerate([4,8,16]):
 
 
 ## Format Plots
-TE_axis.set_xscale('log', basex=2)
+TE_axis.set_xscale('log', base=2)
 TE_axis.set_ylabel('Transfer Entropy (bits)')
 Z_axis.set_xlabel("Sample Size (N)")
 Z_axis.set_ylabel('Significance (z-Score)')
@@ -94,6 +93,4 @@ TE_axis.legend(['4 bins','8 bins', '16 bins'])
 TE_axis.set_ylim(ymin=0,ymax=1.5)
 TE_axis.set_title('Replicating Fig. 4 from Boba et al. - TE vs Data Size',fontsize=11)
 
-plt.savefig(os.path.join(os.getcwd(),'PyCausality','Examples','Plots','Coupled_Map.png'))
-plt.savefig(os.path.join(os.getcwd(),'PyCausality','Examples','Coupled_Map.pdf'))
 plt.show()
