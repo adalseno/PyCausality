@@ -3,8 +3,9 @@ import numpy as np
 from numpy import ma, atleast_2d, pi, sqrt, sum, transpose
 from scipy import stats, optimize, linalg, special
 from scipy.special import gammaln, logsumexp
-from scipy._lib.six import callable, string_types
+#from scipy.six import callable, string_types
 from scipy.stats.mstats import mquantiles
+from collections.abc import Callable
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
@@ -53,9 +54,9 @@ class NDHistogram():
 
         ## Create ND histogram (np.histogramdd doesn't scale down to 1D)
         if self.n_dims == 1:
-            self.Hist, self.Dedges = np.histogram(self.df.values,bins=ordered_bins[0], normed=False)
+            self.Hist, self.Dedges = np.histogram(self.df.values,bins=ordered_bins[0], density=False)
         elif self.n_dims > 1:
-            self.Hist, self.Dedges = np.histogramdd(self.df.values,bins=ordered_bins, normed=False)
+            self.Hist, self.Dedges = np.histogramdd(self.df.values,bins=ordered_bins, density=False)
         
 
         ## Empirical Probability Density Function
@@ -295,7 +296,7 @@ class AutoBins():
 
         
         bins = {k:[np.mean(v)-int(max_bins/2)*np.std(v) + i * np.std(v) for i in range(max_bins+1)] 
-                for (k,v) in self.df.iteritems()}   # Note: same as:  self.df.to_dict('list').items()}
+                for (k,v) in self.df.items()}   # Note: same as:  self.df.to_dict('list').items()}
 
         # Since some outliers can be missed, extend bins if any points are not yet captured
         [bins[k].append(self.df[k].min()) for k in self.df.keys() if self.df[k].min() < min(bins[k])]
@@ -340,7 +341,7 @@ class _kde_(stats.gaussian_kde):
     Functions left as much as possible identical to scipi.stats.gaussian_kde; docs available:
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html
     """
-    def __init__(self, dataset, bw_method=None, df=None, covar=None):
+    def __init__(self, dataset, bw_method=None,  covar=None):
         self.dataset = atleast_2d(dataset)
         if not self.dataset.size > 1:
             raise ValueError("`dataset` input should have multiple elements.")
@@ -357,10 +358,10 @@ class _kde_(stats.gaussian_kde):
             self.covariance_factor = self.scotts_factor
         elif bw_method == 'silverman':
             self.covariance_factor = self.silverman_factor
-        elif np.isscalar(bw_method) and not isinstance(bw_method, string_types):
+        elif np.isscalar(bw_method) and not isinstance(bw_method, str):
             self._bw_method = 'use constant'
             self.covariance_factor = lambda: bw_method
-        elif callable(bw_method):
+        elif Callable(bw_method):
             self._bw_method = bw_method
             self.covariance_factor = lambda: self._bw_method(self)
         else:
@@ -379,13 +380,28 @@ class _kde_(stats.gaussian_kde):
         self.factor = self.covariance_factor()
         # Cache covariance and inverse covariance of the data
         if not hasattr(self, '_data_inv_cov'):
-            self._data_covariance = atleast_2d(np.cov(self.dataset, rowvar=1,
+            self._data_covariance = atleast_2d(np.cov(self.dataset, rowvar=True,
                                                bias=False))
             self._data_inv_cov = linalg.inv(self._data_covariance)
 
         self.covariance = self._data_covariance * self.factor**2
         self.inv_cov = self._data_inv_cov / self.factor**2
         self._norm_factor = sqrt(linalg.det(2*pi*self.covariance)) * self.n
+        super()._compute_covariance()
+    @property
+    def inv_cov(self):
+        # Re-compute from scratch each time because I'm not sure how this is
+        # used in the wild. (Perhaps users change the `dataset`, since it's
+        # not a private attribute?) `_compute_covariance` used to recalculate
+        # all these, so we'll recalculate everything now that this is a
+        # a property.
+        self.factor = self.covariance_factor()
+        self._data_covariance = atleast_2d(cov(self.dataset, rowvar=1,
+                                           bias=False, aweights=self.weights))
+        return linalg.inv(self._data_covariance) / self.factor**2
+    @inv_cov.setter
+    def inv_cov(self, value):
+        self._inv_cov = value
 
 
 ##############################################################################################################
@@ -443,7 +459,7 @@ def pdf_kde(df, gridpoints=None, bandwidth=1, covar=None):
     
     N = complex(gridpoints)
     
-    slices = [slice(dim.min(),dim.max(),N) for dimname, dim in df.iteritems()]
+    slices = [slice(dim.min(),dim.max(),N) for dimname, dim in df.items()]
     grids = np.mgrid[slices]
 
     ## Pass Meshgrid to Scipy Gaussian KDE to Estimate PDF
@@ -639,7 +655,7 @@ def plot_pdf_kernel(df,gridpoints=None, bandwidth=None, covar=None, cmap='infern
 
     pdf = get_pdf(DF,gridpoints=gridpoints,bandwidth=bandwidth)    
     N = complex(gridpoints) 
-    slices = [slice(dim.min(),dim.max(),N) for dimname, dim in DF.iteritems()]
+    slices = [slice(dim.min(),dim.max(),N) for dimname, dim in DF.items()]
     X,Y = np.mgrid[slices]
 
     fig = plt.figure()
